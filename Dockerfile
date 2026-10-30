@@ -12,6 +12,8 @@ COPY main.py ./
 
 RUN uv sync --frozen --no-dev
 
+ENV SSL_CERT_FILE=/app/.venv/lib/python3.15/site-packages/certifi/cacert.pem
+
 EXPOSE 8000
 
 CMD ["uv", "run", "--no-sync", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

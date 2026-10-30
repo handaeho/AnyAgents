@@ -1,8 +1,10 @@
+from datetime import datetime
 import json
 import logging
 from pathlib import Path
 import re
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -20,6 +22,21 @@ log = logging.getLogger("agents.ollama")
 
 _HYPHEN_TAG_RE = re.compile(r"^([a-zA-Z0-9._]+)-([0-9]+b(?:-[a-zA-Z0-9._]+)?)$")
 MAX_TOOL_ROUNDS = 3
+KST = ZoneInfo("Asia/Seoul")
+_WEEKDAY_KO = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
+
+
+def _build_system_prompt(custom_prompt: str | None = None) -> str:
+    now = datetime.now(KST)
+    weekday = _WEEKDAY_KO[now.weekday()]
+    date_context = (
+        f"현재 시각은 대한민국 표준시(KST) 기준 {now.strftime('%Y년 %m월 %d일')} {weekday} "
+        f"{now.strftime('%H:%M')}입니다. '오늘', '현재', '최신', '올해' 등의 시간 표현은 반드시 "
+        f"{now.strftime('%Y년 %m월 %d일')}을 기준으로 판단하고 검색하세요."
+    )
+    if custom_prompt:
+        return f"{date_context}\n\n{custom_prompt}"
+    return date_context
 
 
 def normalize_model_name(model: str) -> str:
@@ -87,10 +104,10 @@ class OllamaClient:
         system_prompt: str | None = None,
     ) -> str:
         """Ollama /api/chat 엔드포인트를 호출하며, 필요 시 Tool Calling 루프를 수행합니다."""
-        messages: list[dict[str, Any]] = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": user_message})
+        messages: list[dict[str, Any]] = [
+            {"role": "system", "content": _build_system_prompt(system_prompt)},
+            {"role": "user", "content": user_message},
+        ]
 
         tools = [WEB_SEARCH_TOOL_SCHEMA] if self.web_search_enabled else None
 

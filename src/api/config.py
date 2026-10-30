@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
+import certifi
 from dotenv import load_dotenv
+
+os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 
 # 프로젝트 루트의 .env 로드
 BASE_DIR = Path(__file__).resolve().parent.parent.parent

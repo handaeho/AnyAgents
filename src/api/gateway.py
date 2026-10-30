@@ -1,8 +1,10 @@
 import asyncio
 import json
 import logging
+import ssl
 from typing import Any
 
+import certifi
 import websockets
 from websockets.exceptions import ConnectionClosed
 
@@ -95,7 +97,8 @@ async def _receive(ws: Any, session: GatewaySession) -> None:
 
 async def _gateway_once(session: GatewaySession) -> None:
     log.info("Connecting to Kakao Bot Gateway: %s", KAKAO_GW_URL)
-    async with websockets.connect(KAKAO_GW_URL) as ws:
+    ssl_context = ssl.create_default_context(cafile=certifi.where())
+    async with websockets.connect(KAKAO_GW_URL, ssl=ssl_context) as ws:
         hello = json.loads(await ws.recv())
         heartbeat_interval = hello["d"]["heartbeat_interval"] / 1000.0
 
