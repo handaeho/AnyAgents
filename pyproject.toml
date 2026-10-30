@@ -15,7 +15,10 @@ dependencies = [
 ]
 
 [project.scripts]
-anyagents = "anyagents:main"
+anyagents = "api:main"
+
+[tool.uv.build-backend]
+module-name = ["api", "agents"]
 
 [build-system]
 requires = ["uv_build>=0.13.6,<0.14.0"]

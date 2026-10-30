@@ -1,0 +1,20 @@
+services:
+  anyagents:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: anyagents
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      OLLAMA_BASE_URL: "http://host.docker.internal:11434"
+      OLLAMA_MODELS: "/Users/daeho/.ollama/models"
+      OLLAMA_MODEL: "qwen3.8:27b"
+    volumes:
+      - /Users/daeho/.ollama/models:/Users/daeho/.ollama/models:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+

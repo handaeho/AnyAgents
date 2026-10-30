@@ -6,11 +6,11 @@ from typing import Any
 import websockets
 from websockets.exceptions import ConnectionClosed
 
-from anyagents.agent import agent_service
-from anyagents.config import BOT_TOKEN, KAKAO_GW_URL
-from anyagents.kakao_client import kakao_client
+from api.agent import agent_service
+from api.config import BOT_TOKEN, KAKAO_GW_URL
+from api.kakao_client import kakao_client
 
-log = logging.getLogger("anyagents.gateway")
+log = logging.getLogger("api.gateway")
 
 # ── Opcodes ──────────────────────────────────────────────────────────
 OP_DISPATCH = 0

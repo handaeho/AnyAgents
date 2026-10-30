@@ -6,11 +6,12 @@ from typing import Annotated
 from fastapi import FastAPI, Header
 import uvicorn
 
-from anyagents.agent import agent_service
-from anyagents.config import BOT_TOKEN, ENABLE_GATEWAY
-from anyagents.gateway import gateway_session, run_gateway_forever
-from anyagents.kakao_client import kakao_client
-from anyagents.schemas import (
+from agents import ollama_client
+from api.agent import agent_service
+from api.config import BOT_TOKEN, ENABLE_GATEWAY
+from api.gateway import gateway_session, run_gateway_forever
+from api.kakao_client import kakao_client
+from api.schemas import (
     CallbackRequest,
     CommandsResponse,
     CommandsUpdateRequest,
@@ -26,7 +27,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-log = logging.getLogger("anyagents.main")
+log = logging.getLogger("api.main")
 
 
 @asynccontextmanager
@@ -48,7 +49,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="AnyAgents Kakao Bot REST API",
-    description="카카오톡 봇 REST API (docs/RESTAPI.md 기반) 및 AI 에이전트 연동 스켈레톤",
+    description="카카오톡 봇 REST API 및 AI 에이전트 연동 스켈레톤",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -56,10 +57,16 @@ app = FastAPI(
 
 @app.get("/health", tags=["System"])
 async def health_check() -> dict:
-    """서버 상태 및 카카오 봇 게이트웨이 연결 상태를 확인합니다."""
+    """서버 상태, 로컬 Ollama 모델 및 카카오 봇 게이트웨이 연결 상태를 확인합니다."""
     return {
         "status": "ok",
         "bot_token_configured": bool(BOT_TOKEN),
+        "ollama": {
+            "base_url": ollama_client.base_url,
+            "model": ollama_client.model,
+            "models_dir": str(ollama_client.models_dir),
+            "manifest_found": ollama_client.is_model_installed(),
+        },
         "gateway": {
             "enabled": ENABLE_GATEWAY,
             "connected": gateway_session.connected,
@@ -76,8 +83,7 @@ async def health_check() -> dict:
 @app.post("/agent/chat", response_model=SkillResponse, tags=["Agent"])
 async def handle_user_message(request: WebhookMessageRequest) -> SkillResponse:
     """
-    사용자 메시지를 수신하여 AI 에이전트 응답(SkillResponse)을 생성합니다.
-    - '안녕하세요' 수신 시 '반갑습니다. 무엇이든 물어보세요.' 반환
+    사용자 메시지를 수신하여 로컬 Ollama 모델(qwen3.8:27b) 기반 응답(SkillResponse)을 생성합니다.
     - callbackToken이 포함된 경우 카카오톡 콜백 API(/v1/bot/callback)로도 즉시 발송합니다.
     """
     skill_response = await agent_service.generate_reply(
@@ -89,7 +95,7 @@ async def handle_user_message(request: WebhookMessageRequest) -> SkillResponse:
     return skill_response
 
 
-# ── 카카오톡 봇 REST API 엔드포인트 (docs/RESTAPI.md 명세) ───────────
+# ── 카카오톡 봇 REST API 엔드포인트 ───────────
 
 @app.post("/v1/bot/callback", response_model=SendMessageResponse, tags=["메시지"])
 async def bot_callback(
@@ -139,7 +145,7 @@ async def update_bot_guide(request: GuideUpdateRequest) -> GuideResponse:
 
 def run() -> None:
     """uv run anyagents 실행 엔트리포인트"""
-    uvicorn.run("anyagents.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=True)
 
 
 if __name__ == "__main__":

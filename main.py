@@ -1,5 +1,4 @@
-from anyagents.main import app, run
+from api.main import app, run
 
 if __name__ == "__main__":
     run()
-

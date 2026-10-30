@@ -3,8 +3,8 @@ from typing import Any
 import httpx
 from fastapi import HTTPException
 
-from anyagents.config import BOT_TOKEN, KAKAO_API_URL
-from anyagents.schemas import (
+from api.config import BOT_TOKEN, KAKAO_API_URL
+from api.schemas import (
     CallbackRequest,
     CommandsResponse,
     CommandsUpdateRequest,
@@ -16,11 +16,11 @@ from anyagents.schemas import (
     UtteranceRequest,
 )
 
-log = logging.getLogger("anyagents.kakao_client")
+log = logging.getLogger("api.kakao_client")
 
 
 class KakaoBotClient:
-    """카카오톡 봇 REST API 클라이언트 (docs/RESTAPI.md 명세 기반)"""
+    """카카오톡 봇 REST API 클라이언트 """
 
     def __init__(self, bot_token: str = BOT_TOKEN, base_url: str = KAKAO_API_URL) -> None:
         self.bot_token = bot_token
