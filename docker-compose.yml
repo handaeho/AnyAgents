@@ -17,6 +17,7 @@ services:
       OLLAMA_WEB_SEARCH: "true"
     volumes:
       - /Users/daeho/.ollama/models:/Users/daeho/.ollama/models:ro
+      - ./hackathon:/app/hackathon
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped

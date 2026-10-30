@@ -1,14 +1,12 @@
-from datetime import datetime
-import json
 import logging
 from pathlib import Path
 import re
 from typing import Any
-from zoneinfo import ZoneInfo
 
 import httpx
 
-from agents.web_search import WEB_SEARCH_TOOL_SCHEMA, search_web
+from agents.prompts import build_runtime_system_prompt
+from agents.tools import execute_registered_tool, get_tool_schemas
 from api.config import (
     OLLAMA_BASE_URL,
     OLLAMA_MODEL,
@@ -21,22 +19,11 @@ from api.config import (
 log = logging.getLogger("agents.ollama")
 
 _HYPHEN_TAG_RE = re.compile(r"^([a-zA-Z0-9._]+)-([0-9]+b(?:-[a-zA-Z0-9._]+)?)$")
-MAX_TOOL_ROUNDS = 3
-KST = ZoneInfo("Asia/Seoul")
-_WEEKDAY_KO = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")
+MAX_TOOL_ROUNDS = 5
 
 
 def _build_system_prompt(custom_prompt: str | None = None) -> str:
-    now = datetime.now(KST)
-    weekday = _WEEKDAY_KO[now.weekday()]
-    date_context = (
-        f"현재 시각은 대한민국 표준시(KST) 기준 {now.strftime('%Y년 %m월 %d일')} {weekday} "
-        f"{now.strftime('%H:%M')}입니다. '오늘', '현재', '최신', '올해' 등의 시간 표현은 반드시 "
-        f"{now.strftime('%Y년 %m월 %d일')}을 기준으로 판단하고 검색하세요."
-    )
-    if custom_prompt:
-        return f"{date_context}\n\n{custom_prompt}"
-    return date_context
+    return build_runtime_system_prompt(custom_prompt)
 
 
 def normalize_model_name(model: str) -> str:
@@ -82,34 +69,24 @@ class OllamaClient:
             return False
 
     async def _execute_tool(self, name: str, arguments: dict[str, Any] | str) -> str:
-        if isinstance(arguments, str):
-            try:
-                loaded = json.loads(arguments)
-                parsed_args: dict[str, Any] = loaded if isinstance(loaded, dict) else {"query": str(loaded)}
-            except json.JSONDecodeError:
-                parsed_args = {"query": arguments}
-        else:
-            parsed_args = arguments
-
-        if name == "web_search":
-            query = str(parsed_args.get("query", ""))
-            return await search_web(query)
-
-        return f"지원하지 않는 도구입니다: {name}"
+        return await execute_registered_tool(name, arguments)
 
     async def chat(
         self,
         user_message: str,
         *,
         system_prompt: str | None = None,
+        history: list[dict[str, str]] | None = None,
     ) -> str:
         """Ollama /api/chat 엔드포인트를 호출하며, 필요 시 Tool Calling 루프를 수행합니다."""
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": _build_system_prompt(system_prompt)},
-            {"role": "user", "content": user_message},
         ]
+        if history:
+            messages.extend(history)
+        messages.append({"role": "user", "content": user_message})
 
-        tools = [WEB_SEARCH_TOOL_SCHEMA] if self.web_search_enabled else None
+        tools = get_tool_schemas(include_web_search=self.web_search_enabled)
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             for round_idx in range(MAX_TOOL_ROUNDS + 1):

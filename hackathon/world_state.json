@@ -1,0 +1,27 @@
+{
+  "city_name": "교동마을(제철 농산물) & 갯마을(싱싱한 수산물) 조합",
+  "scenario_summary": "마을 관계자와의 대화로 현장 문제를 발굴하고, 데이터를 수집·검증·정제하여 두 마을 조합의 업무를 개선하는 AX(AI Transformation) 프로젝트",
+  "updated_at": "2026-10-30T15:23:24+09:00",
+  "zones": {
+    "교동마을": {
+      "specialty": "제철 농산물",
+      "status": "현장 문제 및 데이터 수집 대기 중"
+    },
+    "갯마을": {
+      "specialty": "싱싱한 수산물",
+      "status": "현장 문제 및 데이터 수집 대기 중"
+    },
+    "마을조합_공동업무": {
+      "focus": "수집·검증·정제 기반 조합 업무 개선",
+      "status": "초기 설정 완료"
+    }
+  },
+  "entities": {},
+  "rules": [],
+  "events": [],
+  "facts": [],
+  "hypotheses": [],
+  "metrics": {},
+  "routing_mode": "auto",
+  "data_quality_issues": []
+}
