@@ -12,6 +12,8 @@ services:
       OLLAMA_BASE_URL: "http://host.docker.internal:11434"
       OLLAMA_MODELS: "/Users/daeho/.ollama/models"
       OLLAMA_MODEL: "qwen3.8:27b"
+      OLLAMA_THINK: "true"
+      OLLAMA_WEB_SEARCH: "true"
     volumes:
       - /Users/daeho/.ollama/models:/Users/daeho/.ollama/models:ro
     extra_hosts:

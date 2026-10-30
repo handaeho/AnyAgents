@@ -66,6 +66,8 @@ async def health_check() -> dict:
             "model": ollama_client.model,
             "models_dir": str(ollama_client.models_dir),
             "manifest_found": ollama_client.is_model_installed(),
+            "think": ollama_client.think,
+            "web_search_enabled": ollama_client.web_search_enabled,
         },
         "gateway": {
             "enabled": ENABLE_GATEWAY,

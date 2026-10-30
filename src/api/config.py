@@ -15,7 +15,8 @@ OLLAMA_MODELS: str = os.getenv("OLLAMA_MODELS", "/Users/daeho/.ollama/models")
 os.environ.setdefault("OLLAMA_MODELS", OLLAMA_MODELS)
 OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
 OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "qwen3.8:27b")
-OLLAMA_TIMEOUT: float = float(os.getenv("OLLAMA_TIMEOUT", "120.0"))
-OLLAMA_THINK: bool = os.getenv("OLLAMA_THINK", "false").lower() in ("1", "true", "yes")
+OLLAMA_TIMEOUT: float = float(os.getenv("OLLAMA_TIMEOUT", "180.0"))
+OLLAMA_THINK: bool = os.getenv("OLLAMA_THINK", "true").lower() in ("1", "true", "yes")
+OLLAMA_WEB_SEARCH: bool = os.getenv("OLLAMA_WEB_SEARCH", "true").lower() in ("1", "true", "yes")
 
 
